@@ -394,6 +394,33 @@ describe("npub name endpoints", () => {
     expect(res.status).toBe(403);
   });
 
+  it("wallet history and NWC funding controls are rejected for a registered user (403)", async () => {
+    const secretKey = generateSecretKey();
+    const pubkey = getPublicKey(secretKey);
+    const store = new AuthStore(tmp.dbPath);
+    store.addNpub(pubkey, "user", null, "Carol");
+    store.close();
+
+    proxy.close();
+    proxy = new AuthProxy(makeConfig(tmp.dbPath));
+
+    for (const [method, path] of [
+      ["GET", "/wallet/history"],
+      ["POST", "/nwc/connect"],
+      ["POST", "/nwc/disconnect"],
+      ["POST", "/nwc/fund"],
+      ["POST", "/nwc/auto-refill"],
+    ]) {
+      const payload = method === "POST" ? new TextEncoder().encode("{}") : undefined;
+      const req = new Request(`http://localhost:8008${path}`, { method, body: payload });
+      const auth = await nip98Authorization(secretKey, req, payload);
+      const res = await proxy.handle(
+        new Request(req.url, { method, headers: { Authorization: auth }, body: payload }),
+      );
+      expect(res.status).toBe(403);
+    }
+  });
+
   it("PATCH /npubs updates role and name in one request", async () => {
     const secretKey = generateSecretKey();
     const pubkey = getPublicKey(secretKey);

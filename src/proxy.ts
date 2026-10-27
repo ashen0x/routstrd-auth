@@ -799,6 +799,11 @@ export class AuthProxy {
   static ADMIN_PATHS = new Set([
     "/wallet/send/cashu",
     "/wallet/send/bolt11",
+    "/wallet/history",
+    "/nwc/connect",
+    "/nwc/disconnect",
+    "/nwc/fund",
+    "/nwc/auto-refill",
   ]);
 
   /** Endpoints restricted to registered npubs (admin + user). API keys cannot access. */
