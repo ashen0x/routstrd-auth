@@ -394,6 +394,24 @@ describe("npub name endpoints", () => {
     expect(res.status).toBe(403);
   });
 
+  it("wallet history is rejected for a registered user (403)", async () => {
+    const secretKey = generateSecretKey();
+    const pubkey = getPublicKey(secretKey);
+    const store = new AuthStore(tmp.dbPath);
+    store.addNpub(pubkey, "user", null, "Carol");
+    store.close();
+
+    proxy.close();
+    proxy = new AuthProxy(makeConfig(tmp.dbPath));
+
+    const req = new Request("http://localhost:8008/wallet/history");
+    const auth = await nip98Authorization(secretKey, req);
+    const res = await proxy.handle(
+      new Request(req.url, { headers: { Authorization: auth } }),
+    );
+    expect(res.status).toBe(403);
+  });
+
   it("PATCH /npubs updates role and name in one request", async () => {
     const secretKey = generateSecretKey();
     const pubkey = getPublicKey(secretKey);
